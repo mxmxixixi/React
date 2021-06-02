@@ -248,7 +248,203 @@ function App() {
 ReactDOM.render(<App />, document.getElementById("root"));
 ```
 
+#### 第六章 事件处理
+
+##### 特点
+
+- 在 React 中另一个不同点是你不能通过返回 `false` 的方式阻止默认行为。你必须显式的使用 `preventDefault`
+
+##### 事件列表 
+
+- onWheel
+  - 主要是鼠标进行滚动、触摸板进行滑动，没有滚动条也会触发此事件
+- onScroll
+  - 含有滚动条时，滚动触发的事件
+
+#### 第八章 列表和Keys
+
+- React使用key属性来标记列表中每一个元素，当数据发生变化时，React就可以通过key知道哪些元素发生了变化，从而只重新渲染发生变化的元素，提高渲染效率。key 不需要全局唯一，但在列表中需要保持唯一
+- Key 应该具有稳定，可预测，以及列表内唯一的特质。不稳定的 key（比如通过 `Math.random()` 生成的）会导致许多组件实例和 DOM 节点被不必要地重新创建，这可能导致性能下降和子组件中的状态丢失
+- key 只是在兄弟节点之间必须唯一
+- key 会传递信息给 React ，但不会传递给你的组件。如果你的组件中需要使用 `key` 属性的值，请用其他属性名显式传递这个值
+
+#### 第九章 表单
+
+```javascript
+class Reservation extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      isGoing: true,
+      numberOfGuests: 2
+    };
+
+    this.handleInputChange = this.handleInputChange.bind(this);
+  }
+
+  handleInputChange(event) {
+    const target = event.target;
+    const value = target.name === 'isGoing' ? target.checked : target.value;
+    const name = target.name;
+
+    this.setState({
+      [name]: value
+    });
+  }
+
+  render() {
+    return (
+      <form>
+        <label>
+          参与:
+          <input
+            name="isGoing"
+            type="checkbox"
+            checked={this.state.isGoing}
+            onChange={this.handleInputChange} />
+        </label>
+        <br />
+        <label>
+          来宾人数:
+          <input
+            name="numberOfGuests"
+            type="number"
+            value={this.state.numberOfGuests}
+            onChange={this.handleInputChange} />
+        </label>
+      </form>
+    );
+  }
+}
+```
+
+#### 第十章 React哲学
+
+- 页面划分组件，根据ui以及功能进行划分，根据**单一功能原则**来判定组件的范围
+
 ## 高级指引
+
+### [Context](https://react.docschina.org/docs/context.html)
+
+- 数据是通过 props 属性自上而下（由父及子）进行传递的，但这种做法对于某些类型的属性而言是极其繁琐的（例如：地区偏好，UI 主题）
+- Context 设计目的是为了共享那些对于一个组件树而言是“全局”的数据，例如当前认证的用户、主题或首选语言
+- Context 主要应用场景在于很多不同层级的组件需要访问同样一些的数据。请谨慎使用，因为这会使得组件的复用性变差。
+
+### [错误边界](https://react.docschina.org/docs/error-boundaries.html)
+
+- **错误边界仅可以捕获其子组件的错误**，它无法捕获其自身的错误。如果一个错误边界无法渲染错误信息，则错误会冒泡至最近的上层错误边界，这也类似于 JavaScript 中 catch {} 的工作机制
+
+- 错误边界的粒度由你来决定，可以将其包装在最顶层的路由组件并为用户展示一个 “Something went wrong” 的错误信息，就像服务端框架经常处理崩溃一样。你也可以将单独的部件包装在错误边界以保护应用其他部分不崩溃
+
+  ```javascript
+  static getDerivedStateFromError(error) {
+      // 更新 state 使下一次渲染能够显示降级后的 UI
+      return { hasError: true };
+    }
+  
+    componentDidCatch(error, errorInfo) {
+      // 你同样可以将错误日志上报给服务器
+      logErrorToMyService(error, errorInfo);
+    }
+
+### [Refs 转发](https://react.docschina.org/docs/forwarding-refs.html)
+
+- 第二个参数 `ref` 只在使用 `React.forwardRef` 定义组件时存在。常规函数和 class 组件不接收 `ref` 参数，且 props 中也不存在 `ref`。
+- Ref 转发不仅限于 DOM 组件，你也可以转发 refs 到 class 组件实例中
+
+- refs 将不会透传下去。这是因为 `ref` 不是 prop 属性。就像 `key` 一样，其被 React 进行了特殊处理。如果你对 HOC 添加 ref，该 ref 将引用最外层的容器组件，而不是被包裹的组件
+
+### [Fragments](https://react.docschina.org/docs/fragments.html)
+
+- React 中的一个常见模式是一个组件返回多个元素。Fragments 允许你将子列表分组，而无需向 DOM 添加额外节点
+- 短语法`<> </>`，除了它不支持 key 或属性；
+- 显式 `<React.Fragment>` 语法声明的片段可能具有 key
+
+### [深入 JSX](https://react.docschina.org/docs/jsx-in-depth.html)
+
+- ```javascript
+  import React from 'react';
+  import { PhotoStory, VideoStory } from './stories';
+  
+  const components = {
+    photo: PhotoStory,
+    video: VideoStory
+  };
+  
+  function Story(props) {
+    // 错误！JSX 类型不能是一个表达式。
+    return <components[props.storyType] story={props.story} />;
+  }
+  ```
+
+- ```javascript
+  import React from 'react';
+  import { PhotoStory, VideoStory } from './stories';
+  
+  const components = {
+    photo: PhotoStory,
+    video: VideoStory
+  };
+  
+  function Story(props) {
+    // 正确！JSX 类型可以是大写字母开头的变量。
+    const SpecificStory = components[props.storyType];
+    return <SpecificStory story={props.story} />;
+  }
+  ```
+
+- Props 默认值为 “True”
+
+  ```javascript
+  <MyTextBox autocomplete />
+  
+  <MyTextBox autocomplete={true} />
+  ```
+
+### [性能优化](https://react.docschina.org/docs/optimizing-performance.html)
+
+- 打包优化
+- 虚拟化长列表：react-virtualized
+- 避免调停:shouldComponentUpdate(),React.PureComponent
+- 不可变数据:在赋值时不改变原对象或者数组
+
+### [Portals](https://react.docschina.org/docs/portals.html)
+
+- Portal 提供了一种将子节点渲染到存在于父组件以外的 DOM 节点的优秀的方案
+- 在父组件里捕获一个来自 portal 冒泡上来的事件，使之能够在开发时具有不完全依赖于 portal 的更为灵活的抽象。例如，如果你在渲染一个 `<Modal />` 组件，无论其是否采用 portal 实现，父组件都能够捕获其事件
+
+### [Profiler](https://react.docschina.org/docs/profiler.html)
+
+- `Profiler` 测量渲染一个 React 应用多久渲染一次以及渲染一次的“代价”。 它的目的是识别出应用中渲染较慢的部分，或是可以使用[类似 memoization 优化](https://react.docschina.org/docs/hooks-faq.html#how-to-memoize-calculations)的部分，并从相关优化中获益
+
+### [协调](https://react.docschina.org/docs/reconciliation.html)
+
+#### Diffing 算法
+
+- 该算法不会尝试匹配不同组件类型的子树。如果你发现你在两种不同类型的组件中切换，但输出非常相似的内容，建议把它们改成同一类型。在实践中，我们没有遇到这类问题。
+- Key 应该具有稳定，可预测，以及列表内唯一的特质。不稳定的 key（比如通过 `Math.random()` 生成的）会导致许多组件实例和 DOM 节点被不必要地重新创建，这可能导致性能下降和子组件中的状态丢失
+
+### [Render Props](https://react.docschina.org/docs/render-props.html)
+
+- render prop 是一个用于告知组件需要渲染什么内容的函数 prop
+
+  ```javascript
+  function withMouse(Component) {
+    return class extends React.Component {
+      render() {
+        return (
+          <Mouse render={mouse => (
+            <Component {...this.props} mouse={mouse} />
+          )}/>
+        );
+      }
+    }
+  }
+  ```
+
+- render prop 是因为模式才被称为 *render* prop ，你不一定要用名为 `render` 的 prop 来使用这种模式。事实上， [*任何*被用于告知组件需要渲染什么内容的函数 prop 在技术上都可以被称为 “render prop”](https://cdb.reacttraining.com/use-a-render-prop-50de598f11ce)
+
+- 由于render直接写函数回在每次渲染时生成新的函数，所以Mouse组件继承React.PureComponent是无法优化性能的，要想继续用React.PureComponent，可以把render的函数变成外部写，而不是每次生成新的函数
 
 ### 使用 PropTypes 进行类型检查
 
@@ -395,6 +591,14 @@ Greeting.defaultProps = {
 ReactDOM.render(<Greeting />, document.getElementById("example"));
 ```
 
+### React.memo
+
+- 性能优化特别好
+
+- 如果你的组件在相同 props 的情况下渲染相同的结果，那么你可以通过将其包装在 `React.memo` 中调用，以此通过记忆组件渲染结果的方式来提高组件的性能表现。这意味着在这种情况下，React 将跳过渲染组件的操作并直接复用最近一次渲染的结果
+- 默认情况下其只会对复杂对象做浅层对比，如果你想要控制对比过程，那么请将自定义的比较函数通过第二个参数传入来实现
+- 当 context 发生变化时，它仍会重新渲染
+
 ## Hook
 
 ### 1. Hook 简介
@@ -405,19 +609,18 @@ ReactDOM.render(<Greeting />, document.getElementById("example"));
 - 100%向后兼容；
 - 现在可用(Hook 发布于 16.8 版本)；
 
-#### 1.2 动机
+#### 1.2 动机(Hook的优点,为什么要在 React 中引入 Hook 的原因)
 
-- 组件中复用状态逻辑很难(现在主要是用 render props 或高阶组件)；
+- 组件中复用状态逻辑很难(现在主要是用 render props 或高阶组件，这样会形成嵌套地域)；
+  - hook 可以在无需改变组件结构的情况下复用状态逻辑**(使用方便)**
+  - 使用 hook 从组件中**提取状态逻辑**，使得这些逻辑可以单独测试并使用**(全局使用hook存储用户的信息，Hook 和现有代码可以同时工作，可以渐进式地使用他们)**；
+- 复杂组件变得难以理解(组件中需要处理的逻辑很多，同一个钩子函数处理不同的逻辑，维护比较困难)；
 
-  使用 hook 从组件中提取状态逻辑，使得这些逻辑可以单独测试并使用、hook 可以在无需改变组件结构的情况下复用状态逻辑；
-
-- 复杂组件变得难以理解(组件中需要处理的逻辑很多，不同的钩子函数处理不同的逻辑，维护比较困难)；
-
-  Hook 将组件中相互关联的部分拆成更小的函数，而非强制按照生命周期划分；
-
+  - Hook 将组件中相互关联的部分拆成更小的函数，而非强制按照生命周期划分**(可以在每一个hook中完成一个功能点的逻辑)**；
 - 难以理解的 class(绑定 this、class 组件不好压缩，并且会使热重载出现不稳定的情况)；
 
-  Hook 在你非 class 的情况下可以使用更多的 React 特性；
+  - Hook 在你非 class 的情况下可以使用更多的 React 特性**(不需要绑定this)**
+  - **不能在 class 组件*内部*使用 Hook
 
 #### 1.3 渐进策略
 
@@ -429,9 +632,8 @@ Hook 与现在有的代码可以同时工作，可以渐进式使用他们；
 
 ### 2. Hook 概览
 
-> 什么是 Hook？
-
-Hook 是一些可以让你在函数组件里"钩入"React State 以及生命周期等特性的函数，Hook 不能在 class 组件中使用。React 中内置了一些像 useState 这样的 Hook，也可以创建自己的 Hook 来复用组件之间的逻辑；Hook 使用了 javascript 的闭包机制；
+- 什么是 Hook？
+  - Hook 是一些可以让你在函数组件里"钩入"React State 以及生命周期等特性的函数，Hook 不能在 class 组件中使用。React 中内置了一些像 useState 这样的 Hook，也可以创建自己的 Hook 来复用组件之间的逻辑；Hook 使用了 javascript 的闭包机制；
 
 #### 2.1 State Hook
 
@@ -457,7 +659,7 @@ function Example() {
 
 - **`调用 useState` 方法的时候做了什么?**
 
-  定义了一个 state 变量，在函数退出后变量就会”消失”，而 state 中的变量会被 React 保留；
+  定义了一个 state 变量，在函数退出后变量就会”消失”，而 state 中的变量会被 React 保留，运用闭包原理实现变量保存；
 
 - **`useState` 需要哪些参数？**
 
@@ -568,7 +770,8 @@ function Example() {
 
 ##### 2.2.2 需要清除的 effect
 
-React 会在组件卸载的时候执行清除操作；`useEffect` 可以在组件渲染后实现各种不同的副作用。有些副作用可能需要清除，所以需要返回一个函数；
+- **React 会在组件卸载的时候执行清除操作**；`useEffect` 可以在组件渲染后实现各种不同的副作用。有些副作用可能需要清除，所以需要返回一个函数；
+- effect 的清除阶段在每次**重新渲染**时都会执行，而不是只在卸载组件的时候执行一次，这样设计替代componentDidUpdate生命周期，重新渲染代表着第一次渲染不执行
 
 ```javascript
 import React, { useState, useEffect } from "react";
@@ -606,9 +809,28 @@ function FriendStatus(props) {
 - 如果数组中有多个元素，即使只有一个元素发生变化，React 也会执行 effect；
 - 什么都不传，组件每次 `render` 之后 `useEffect` 都会调用，
 
+#### 2.3 useContext
+
+- 定义以及用途同Context【高级指引中】
+
 #### 2.3 useCallback
 
-#### 2.4 useImperativeHandle
+- 当你把回调函数传递给经过优化的并使用引用相等性去避免非必要渲染（例如 `shouldComponentUpdate`）的子组件时，它将非常有用
+- `useCallback(fn, deps)` 相当于 `useMemo(() => fn, deps)`
+
+#### 2.4 useMemo
+
+- 把“创建”函数和依赖项数组作为参数传入 `useMemo`，它仅会在某个依赖项改变时才重新计算 memoized 值。这种优化有助于避免在每次渲染时都进行高开销的计算。
+- 传入 `useMemo` 的函数会在渲染期间执行。请不要在这个函数内部执行与渲染无关的操作，诸如副作用这类的操作属于 `useEffect` 的适用范畴，而不是 `useMemo`
+- 如果没有提供依赖项数组，`useMemo` 在每次渲染时都会计算新的值
+
+#### 2.5 useRef
+
+- `useRef` 返回一个可变的 ref 对象，其 `.current` 属性被初始化为传入的参数（`initialValue`）。返回的 ref 对象在组件的整个生命周期内保持不变
+- `useRef()` 比 `ref` 属性更有用。它可以很方便地保存任何可变值
+- 当 ref 对象内容发生变化时，`useRef` 并*不会*通知你。变更 `.current` 属性不会引发组件重新渲染。如果想要在 React 绑定或解绑 DOM 节点的 ref 时运行某些代码，则需要使用回调 ref来实现
+
+#### 2.5 useImperativeHandle
 
 可以在使用 ref 时自定义暴露给父组件的实例值，useImperativeHandle 一般与 forwardref 使用
 
@@ -635,8 +857,25 @@ const parent = ()=>{
 }
 ```
 
+#### 2.6 useRequest【ahooks】
+
+- ready只能是布尔值，不能是表达式的布尔值
+
+#### 自定义Hook
+
+- 自定义 Hook 是一个函数，其名称以 “`use`” 开头，函数内部可以调用其他的 Hook。
+- **自定义 Hook 必须以 “`use`” 开头吗？**必须如此
+- **在两个组件中使用相同的 Hook 会共享 state 吗？**不会。自定义 Hook 是一种重用*状态逻辑*的机制(例如设置为订阅并存储当前值)，所以每次使用自定义 Hook 时，其中的所有 state 和副作用都是完全隔离的。
+- 
+
 ## Hook 规则
 
 ### 3.1 只在最顶层使用 Hook
 
 **不要在循环，条件或嵌套函数中调用 Hook，** 确保总是在你的 React 函数的最顶层调用他们。遵守这条规则，你就能确保 Hook 在每一次渲染中都按照同样的顺序被调用。这让 React 能够在多次的 `useState` 和 `useEffect` 调用之间保持 hook 状态的正确。如果我们想要有条件地执行一个 effect，可以将判断放到 Hook 的*内部*：
+
+## HOOK总结
+
+- 缺点
+  - 容易造成函数中拿不到最新的值【闭包造成】
+  - hook的依赖项手动添加，非常繁琐
