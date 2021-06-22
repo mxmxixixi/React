@@ -876,6 +876,17 @@ const parent = ()=>{
 
 ## HOOK总结
 
+- 优点
+
+  - 有什么是 Hook 能做而 class 做不到的
+
+    > Hook 提供了强大而富有表现力的方式来在组件间复用功能。通过 [「自定义 Hook」](https://react.docschina.org/docs/hooks-custom.html) 这一节可以了解能用它做些什么
+
+  - Hook 避免了 class 需要的额外开支，像是创建类实例和在构造函数中绑定事件处理器的成本。
+
+  - **符合语言习惯的代码在使用 Hook 时不需要很深的组件树嵌套**。这个现象在使用高阶组件、render props、和 context 的代码库中非常普遍。组件树小了，React 的工作量也随之减少
+
 - 缺点
   - 容易造成函数中拿不到最新的值【闭包造成】
   - hook的依赖项手动添加，非常繁琐
+  - 目前暂时还没有对应不常用的 `getSnapshotBeforeUpdate`，`getDerivedStateFromError` 和 `componentDidCatch` 生命周期的 Hook 等价写法
